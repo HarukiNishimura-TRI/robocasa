@@ -2,7 +2,10 @@ from PIL import Image
 import os
 
 
-colors = {"white": (255, 255, 255), "dark_green": (18, 68, 41)}
+colors = {
+    "white": (255, 255, 255),
+    "dark_green": (18, 68, 41)
+}
 
 
 for c_name in colors:
