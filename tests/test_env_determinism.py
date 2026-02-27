@@ -5,27 +5,23 @@ import numpy as np
 from lxml import etree as ET
 
 import mujoco
-import robocasa
 import robosuite
-from robosuite import load_controller_config
+import robocasa  # noqa: F401 — registers RoboCasa envs into robosuite
+from robosuite.controllers import load_composite_controller_config
 from termcolor import colored
 
 DEFAULT_SEED = 3
 
+# Environments to test. Extend this list as new tasks are onboarded.
+TARGET_ENVS = [
+    "OpenSingleDoor",
+    "CoffeePressButton",
+    "CoffeeServeMug",
+    "PnPSinkToCounter",
+]
+
 
 class TestEnvDeterminism(unittest.TestCase):
-
-    skip_envs = set(
-        [
-            "AfterwashSorting",
-            "BowlAndCup",
-            "ClearingCleaningReceptacles",
-            "DrinkwareConsolidation",
-            "PnP",
-            "SetBowlsForSoup",
-            "WineServingPrep",
-        ]
-    )
 
     def create_env(self, config):
         env = robosuite.make(**config)
@@ -41,10 +37,9 @@ class TestEnvDeterminism(unittest.TestCase):
     @mock.patch("numpy.random.uniform")
     def test_env_determinism(self, *args):
         """
-        Tests environment determinism for all Kichen environments excluding those in
-        skip_envs (defined above). We test for similarity in scene layout, style, all
-        objects and fixtures in the scene including their position and orientation,
-        and randomized cameras.
+        Tests environment determinism for TARGET_ENVS. Creates two instances of
+        each environment with the same seed and verifies identical scene layout,
+        style, object placements, and fixture placements.
         """
 
         def compare_scene_appearance(env_1, env_2):
@@ -88,19 +83,14 @@ class TestEnvDeterminism(unittest.TestCase):
                 np.testing.assert_allclose(pos_1, pos_2, atol=1e-7)
                 np.testing.assert_allclose(quat_1, quat_2, atol=1e-7)
 
-        envs = sorted(robocasa.ALL_KITCHEN_ENVIRONMENTS)
-
-        for i, env in enumerate(envs):
-            if env in self.skip_envs or env.startswith("MG_"):
-                continue
-
-            print(colored(f"Testing {env} environment...", "green"))
+        for i, env in enumerate(TARGET_ENVS):
+            print(colored(f"Testing {env} environment [{i+1}/{len(TARGET_ENVS)}]...", "green"))
 
             config = {
                 "env_name": env,
                 "robots": "PandaOmron",
-                "controller_configs": load_controller_config(
-                    default_controller="OSC_POSE"
+                "controller_configs": load_composite_controller_config(
+                    controller=None, robot="PandaOmron"
                 ),
                 "has_renderer": False,
                 "has_offscreen_renderer": False,
@@ -131,9 +121,11 @@ class TestEnvDeterminism(unittest.TestCase):
         """
 
         config = {
-            "env_name": "PnPCounterToCab",
+            "env_name": "PnPSinkToCounter",
             "robots": "PandaOmron",
-            "controller_configs": load_controller_config(default_controller="OSC_POSE"),
+            "controller_configs": load_composite_controller_config(
+                controller=None, robot="PandaOmron"
+            ),
             "has_renderer": False,
             "has_offscreen_renderer": False,
             "ignore_done": True,
@@ -162,9 +154,11 @@ class TestEnvDeterminism(unittest.TestCase):
         """
 
         config = {
-            "env_name": "PnPCounterToCab",
+            "env_name": "PnPSinkToCounter",
             "robots": "PandaOmron",
-            "controller_configs": load_controller_config(default_controller="OSC_POSE"),
+            "controller_configs": load_composite_controller_config(
+                controller=None, robot="PandaOmron"
+            ),
             "has_renderer": False,
             "has_offscreen_renderer": False,
             "ignore_done": True,

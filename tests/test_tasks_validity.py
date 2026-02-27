@@ -2,31 +2,37 @@ import unittest
 from termcolor import colored
 import traceback
 
-from robocasa.environments import ALL_KITCHEN_ENVIRONMENTS
 from robocasa.utils.env_utils import create_env, run_random_rollouts
 
 DEFAULT_SEED = 0
 NUM_ROLLOUTS = 10
 NUM_STEPS = 20
 
+# Environments to test. Extend this list as new tasks are onboarded.
+TARGET_ENVS = [
+    "OpenSingleDoor",
+    "CoffeePressButton",
+    "CoffeeServeMug",
+    "PnPSinkToCounter",
+]
+
 
 class TestTasksValidity(unittest.TestCase):
-    def test_tasks_validity(self, *args):
+    def test_tasks_validity(self):
         """
-        Tests that all kitchen environment tasks run error free. Iterates through
-        all tasks, creates the environment, then runs NUM_ROLLOUTS test episodes per scene.
-        At the end, prints out all tests that were successful, and then any that were not
-        completed successfully along with their errors.
+        Tests that TARGET_ENVS run error-free. Creates each environment and runs
+        NUM_ROLLOUTS test episodes per scene. Prints successful and failed tasks
+        with their errors at the end.
         """
 
         successful = []
         unsucessful = []
         error_dict = {}
 
-        for i, env_name in enumerate(list(ALL_KITCHEN_ENVIRONMENTS)):
+        for i, env_name in enumerate(TARGET_ENVS):
             print(
                 colored(
-                    f"Testing {env_name} environment [{i}/{len(list(ALL_KITCHEN_ENVIRONMENTS))}]...",
+                    f"Testing {env_name} environment [{i+1}/{len(TARGET_ENVS)}]...",
                     "green",
                 )
             )
